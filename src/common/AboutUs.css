@@ -1,0 +1,16 @@
+/* App.css */
+
+.hero-img {
+  max-height: 400px; /* Giới hạn chiều cao ảnh carousel */
+  object-fit: cover; /* Đảm bảo ảnh không bị biến dạng */
+}
+
+.category-img {
+  max-height: 200px; /* Giới hạn chiều cao ảnh danh mục */
+  object-fit: cover; /* Đảm bảo ảnh không bị biến dạng */
+}
+
+.featured-img {
+  max-height: 200px; /* Giới hạn chiều cao ảnh sản phẩm nổi bật */
+  object-fit: cover; /* Đảm bảo ảnh không bị biến dạng */
+}
