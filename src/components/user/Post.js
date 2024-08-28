@@ -25,6 +25,7 @@ function TableComponent() {
 
     useEffect(() => {
         fetchData();
+        fetchCategory();
     }, [page, pageSize, search, status]);
 
     const fetchData = async () => {

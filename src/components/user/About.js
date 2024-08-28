@@ -38,8 +38,8 @@ function TableComponent() {
     };
 
     const navItems = [
-        { href: '#home', icon: <HomeOutlined />, text: 'Trang Chủ' },
-        { href: '#categories', icon: <TagOutlined />, text: 'Bài đăng' },
+        { href: 'http://localhost:3000/about', icon: <HomeOutlined />, text: 'Trang Chủ' },
+        { href: 'http://localhost:3000/post-list', icon: <TagOutlined />, text: 'Bài đăng' },
         { href: '#about', icon: <InfoCircleOutlined />, text: 'Giới Thiệu' },
         { href: '#contact', icon: <PhoneOutlined />, text: 'Liên Hệ' },
     ];
@@ -68,17 +68,19 @@ const HeaderComponent = ({ navItems }) => (
     <Header className="shadow-sm" style={{ backgroundColor: '#fff' }}>
         <div className="header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div className="logo" style={{ color: '#ff6f61', fontWeight: 'bold', fontSize: '24px' }}>Chợ Việt</div>
-            <Menu theme="light" mode="horizontal" style={{ flex: 1, display: 'flex', justifyContent: 'space-between' }}>
+            <Menu theme="light" mode="horizontal" style={{ flex: 1, display: 'd-flex justify-content-between', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', gap: '8px' }}>
                     {navItems.map(({ href, icon, text }, index) => (
                         <Menu.Item key={index} icon={icon} style={{ padding: '0 8px' }}>
                             <a href={href}>{text}</a>
+                            
                         </Menu.Item>
                     ))}
+                      <PostButton />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <SearchForm />
-                    <PostButton />
+                <div style={{ display: 'flex' }}>
+                    {/* <SearchForm /> */}
+                    {/* <PostButton /> */}
                 </div>
             </Menu>
         </div>
@@ -86,16 +88,16 @@ const HeaderComponent = ({ navItems }) => (
 );
 
 // SearchForm Component
-const SearchForm = () => (
-    <Form layout="inline">
-        <Form.Item>
-            <Input placeholder="Tìm kiếm sản phẩm" prefix={<SearchOutlined />} />
-        </Form.Item>
-        <Form.Item>
-            <Button type="primary">Tìm kiếm</Button>
-        </Form.Item>
-    </Form>
-);
+// const SearchForm = () => (
+//     <Form layout="inline">
+//         <Form.Item>
+//             <Input placeholder="Tìm kiếm sản phẩm" prefix={<SearchOutlined />} />
+//         </Form.Item>
+//         <Form.Item>
+//             <Button type="primary">Tìm kiếm</Button>
+//         </Form.Item>
+//     </Form>
+// );
 
 // PostButton Component
 const PostButton = () => (
