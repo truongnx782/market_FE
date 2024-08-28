@@ -1,15 +1,14 @@
-import React, { useState, useEffect, useRef } from 'react';
-import ApiService from '../Service/ApiServiceService';
+import React, { useState, useEffect } from 'react';
+import ApiService from '../../Service/ApiCategoryService';
 import SidebarMenu from './SidebarMenu';
-import { Table, Button, Input, Modal, Select, Pagination, message,Upload, Dropdown } from 'antd';
-import { EditOutlined, DeleteOutlined, RetweetOutlined,UploadOutlined, DownloadOutlined, DownCircleFilled, ExportOutlined  } from '@ant-design/icons';
+import { Table, Button, Input, Modal, Select, Pagination, message, Upload, Dropdown, Form } from 'antd';
+import { EditOutlined, DeleteOutlined, RetweetOutlined, UploadOutlined, DownloadOutlined, DownCircleFilled, ExportOutlined, PlusOutlined } from '@ant-design/icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function TableComponent() {
+  const [formCategory] = Form.useForm();
   const [data, setData] = useState([]);
-  const [selectedData, setSelectedData] = useState(null);
   const [isNew, setIsNew] = useState(false);
-  const [errors, setErrors] = useState({});
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [total, setTotal] = useState(0);
@@ -17,13 +16,8 @@ function TableComponent() {
   const [status, setStatus] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { Option } = Select;
-
-  const fetchDataRef = useRef(false);
   useEffect(() => {
-    if (!fetchDataRef.current) {
-      fetchDataRef.current = true;
-      fetchData();
-    }
+    fetchData();
   }, [page, pageSize, search, status]);
 
   const fetchData = async () => {
@@ -40,9 +34,14 @@ function TableComponent() {
   const edit = async (id) => {
     try {
       const result = await ApiService.getById(id);
-      setSelectedData(result);
       setIsNew(false);
+      formCategory.setFieldsValue(result);
       setModalVisible(true);
+      setFileList([
+        {
+          url: result.url, 
+        },
+      ]);
     } catch (error) {
       console.error('Error:', error);
       message.error(`Lỗi: ${error.message}`);
@@ -51,16 +50,35 @@ function TableComponent() {
 
   const save = async () => {
     try {
-      if (!validate()) {
+      const values = await formCategory.validateFields().catch(() => null);
+      if (!values) {
         return;
       }
+      const id = formCategory.getFieldValue('id');
+      const formData = new FormData();
+      formData.append("categoryName", values.categoryName);
+      fileList.forEach(file => {
+        formData.append("files", file.originFileObj);
+      });
+
+      if (fileList.length === 0) {
+        message.error("Không được bỏ trống ảnh.");
+        return;
+      }
+
       if (isNew) {
-        await ApiService.create(selectedData);
+        await ApiService.create(formData);
         message.success('Thêm mới thành công!');
       } else {
-        await ApiService.update(selectedData.id, selectedData);
+        fileList.forEach(file => {
+          if (file.url) {
+            formData.append("url", file.url);
+          }
+        });
+        await ApiService.update(id, formData);
         message.success('Cập nhật thành công!');
       }
+
       fetchData();
       setModalVisible(false);
     } catch (error) {
@@ -94,7 +112,6 @@ function TableComponent() {
   const handleUpload = async ({ file }) => {
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       await ApiService.upload(formData);
       message.success('Tải lên thành công.');
@@ -145,7 +162,7 @@ function TableComponent() {
   const confirmDelete = (id) => {
     Modal.confirm({
       title: 'Xác nhận',
-      content: 'Bạn có chắc chắn muốn xoá dịch vụ này?',
+      content: 'Bạn có chắc chắn muốn đóng bài đăng này?',
       okText: 'Xác nhận',
       okType: 'danger',
       cancelText: 'Huỷ',
@@ -156,7 +173,7 @@ function TableComponent() {
   const confirmRestore = (id) => {
     Modal.confirm({
       title: 'Xác nhận',
-      content: 'Bạn có chắc chắn muốn khôi phục dịch vụ này?',
+      content: 'Bạn có chắc chắn muốn khôi phục bài đăng này?',
       okText: 'Xác nhận',
       okType: 'primary',
       cancelText: 'Huỷ',
@@ -167,7 +184,7 @@ function TableComponent() {
   const confirmSave = () => {
     Modal.confirm({
       title: 'Xác nhận',
-      content: 'Bạn có chắc chắn muốn lưu thông tin dịch vụ này?',
+      content: 'Bạn có chắc chắn muốn lưu thông tin bài đăng này?',
       okText: 'Xác nhận',
       okType: 'primary',
       cancelText: 'Huỷ',
@@ -177,92 +194,32 @@ function TableComponent() {
 
   const onHide = () => {
     setModalVisible(false);
-    setSelectedData(null);
     setIsNew(false);
-    setErrors({});
+    setFileList([])
   };
 
   const openNew = () => {
-    setSelectedData(null);
     setModalVisible(true);
+    formCategory.resetFields();
+    setFileList([])
     setIsNew(true);
   };
 
-  const handleInputChange = (field) => (e) => {
-    setSelectedData((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const validate = () => {
-    let isValid = true;
-    const errors = {};
-
-    if (!selectedData || !selectedData.serviceName || selectedData.serviceName.trim() === '') {
-      errors.serviceName = 'Tên dịch vụ không được để trống.';
-      isValid = false;
-    }
-    if (
-      !selectedData ||
-      !selectedData.servicePrice ||
-      isNaN(selectedData.servicePrice) ||
-      selectedData.servicePrice < 0
-    ) {
-      errors.servicePrice = 'Giá dịch vụ phải lớn hơn 0.';
-      isValid = false;
-    }
-    if (!selectedData || !selectedData.startDate) {
-      errors.startDate = 'Ngày bắt đầu không được để trống.';
-      isValid = false;
-    } else {
-      const startDate = new Date(selectedData.startDate);
-      if (selectedData.endDate) {
-        const endDate = new Date(selectedData.endDate);
-        if (endDate < startDate) {
-          errors.endDate = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.';
-          isValid = false;
-        }
-      }
-    }
-
-    setErrors(errors);
-    return isValid;
-  };
 
   const columns = [
     {
-      title: 'Mã dịch vụ',
-      dataIndex: 'serviceCode',
-      key: 'serviceCode',
-      sorter: (a, b) => a.serviceCode.localeCompare(b.serviceCode),
-      width: '14%',
+      title: 'Mã danh mục',
+      dataIndex: 'categoryCode',
+      key: 'categoryCode',
+      sorter: (a, b) => a.categoryCode.localeCompare(b.categoryCode),
+      width: '20%',
     },
     {
-      title: 'Tên dịch vụ',
-      dataIndex: 'serviceName',
-      key: 'serviceName',
-      sorter: (a, b) => a.serviceName.localeCompare(b.serviceName),
-      width: '14%',
-    },
-    {
-      title: 'Giá dịch vụ',
-      key: 'servicePrice',
-      render: (value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value.servicePrice),
-      sorter: (a, b) => a.servicePrice - b.servicePrice,
-      width: '14%',
-    },
-
-    {
-      title: 'Ngày bắt đầu',
-      dataIndex: 'startDate',
-      key: 'startDate',
-      sorter: (a, b) => a.startDate - b.startDate,
-      width: '14%',
-    },
-    {
-      title: 'Ngày kết thúc',
-      dataIndex: 'endDate',
-      key: 'endDate',
-      sorter: (a, b) => a.endDate - b.endDate,
-      width: '14%',
+      title: 'Tên danh mục',
+      dataIndex: 'categoryName',
+      key: 'categoryName',
+      sorter: (a, b) => a.categoryName.localeCompare(b.categoryName),
+      width: '45%',
     },
     {
       title: 'Trạng thái',
@@ -282,7 +239,7 @@ function TableComponent() {
           {value === 1 ? 'Hoạt động' : 'Ngưng hoạt động'}
         </span>
       ),
-      width: '14%',
+      width: '20%',
     },
     {
       title: 'Hành động',
@@ -298,8 +255,8 @@ function TableComponent() {
           {value.status === 0 ? (
             <Button
               icon={<RetweetOutlined />}
-              onClick={() => confirmRestore(value.id)}
-              style={{ color: 'blue', borderColor: 'blue' }}>
+              style={{ color: 'blue', borderColor: 'blue' }}
+              onClick={() => confirmRestore(value.id)}>
             </Button>
           ) : (
             <Button
@@ -347,6 +304,12 @@ function TableComponent() {
     },
   ];
 
+
+  const [fileList, setFileList] = useState([]);
+  const handleChange = ({ fileList }) => setFileList(fileList);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+
   return (
     <div style={{ width: '100%' }}>
       <div style={{ width: '15%' }}>
@@ -356,7 +319,7 @@ function TableComponent() {
         <div className="card shadow-sm card-body p-2 mb-3 mt-2" style={{ height: '7vh', width: '100%', display: 'flex' }}>
           <div>
             <p style={{ display: 'inline-block', margin: 0 }}>Quản lý danh mục/ </p>
-            <h6 style={{ display: 'inline-block', margin: 1 }}> Danh dịch vụ</h6>
+            <h6 style={{ display: 'inline-block', margin: 1 }}> Danh tiện ích</h6>
           </div>
         </div>
         <div className="card shadow-sm card-body ">
@@ -365,7 +328,7 @@ function TableComponent() {
               <Button
                 type="primary"
                 onClick={openNew}>
-                Thêm mới dịch vụ
+                Thêm mới danh mục
               </Button>
               <Input
                 placeholder="Tìm kiếm..."
@@ -384,6 +347,7 @@ function TableComponent() {
                 <Option value={0}>Ngưng hoạt động</Option>
               </Select>
             </div>
+
             <Dropdown
               menu={{ items }}
               placement="bottom"
@@ -413,65 +377,56 @@ function TableComponent() {
             }}
           />
 
-
           <Modal
-            title={isNew ? 'Thêm mới dịch vụ' : 'Chỉnh sửa dịch vụ'}
+            title={isNew ? 'Thêm mới danh mục' : 'Chỉnh sửa danh mục'}
             open={modalVisible}
             onCancel={onHide}
-            width="70vw"
+            width="40vw"
             footer={[
               <Button key="back" onClick={onHide}>Hủy</Button>,
-              <Button key="submit" type="primary" onClick={confirmSave}>
-                Lưu
-              </Button>,
+              <Button key="submit" type="primary" onClick={confirmSave}>Lưu</Button>,
             ]}
           >
-            <form>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label>Tên dịch vụ</label>
-                  <Input
-                    value={selectedData?.serviceName || ''}
-                    onChange={handleInputChange('serviceName')}
-                    style={{ borderColor: errors.serviceName ? 'red' : '' }}
-                  />
-                  {errors.serviceName && <div style={{ color: 'red' }}>{errors.serviceName}</div>}
-                </div>
+            <Form form={formCategory} layout="vertical">
+              <Form.Item
+                name="categoryName"
+                label="Tên danh mục"
+                rules={[{ required: true, message: 'Tên danh mục không được để trống' }]}
+              >
+                <Input />
+              </Form.Item>
 
-                <div className="col-md-6 mb-3">
-                  <label>Giá dịch vụ</label>
-                  <Input
-                    type="number"
-                    value={selectedData?.servicePrice || ''}
-                    onChange={handleInputChange('servicePrice')}
-                    style={{ borderColor: errors.servicePrice ? 'red' : '' }}
-                  />
-                  {errors.servicePrice && <div style={{ color: 'red' }}>{errors.servicePrice}</div>}
-                </div>
+              <Form.Item
+                label="Chọn hình ảnh"
+              >
+                <Upload
+                  listType="picture"
+                  onChange={handleChange}
+                  fileList={fileList}
+                  beforeUpload={() => false}
+                  onPreview={(file) => {
+                    setPreviewImage(file.url || URL.createObjectURL(file.originFileObj));
+                    setPreviewVisible(true);
+                  }}
+                  maxCount={5}
+                >
+                  {fileList.length < 1 && (
+                    <div>
+                      <Button icon={<UploadOutlined />} />
+                    </div>
+                  )}
+                </Upload>
+                <Modal
+                  open={previewVisible}
+                  footer={null}
+                  onCancel={() => setPreviewVisible(false)}
+                >
+                  <img alt="Preview" style={{ width: '100%' }} src={previewImage} />
+                </Modal>
+              </Form.Item>
 
-                <div className="col-md-6 mb-3">
-                  <label>Ngày bắt đầu</label>
-                  <Input
-                    type="date"
-                    value={selectedData?.startDate || ''}
-                    onChange={handleInputChange('startDate')}
-                    style={{ borderColor: errors.startDate ? 'red' : '' }}
-                  />
-                  {errors.startDate && <div style={{ color: 'red' }}>{errors.startDate}</div>}
-                </div>
+            </Form>
 
-                <div className="col-md-6 mb-3">
-                  <label>Ngày kết thúc</label>
-                  <Input
-                    type='date'
-                    value={selectedData?.endDate || ''}
-                    onChange={handleInputChange('endDate')}
-                    style={{ borderColor: errors.address ? 'red' : '' }}
-                  />
-                  {errors.endDate && <div style={{ color: 'red' }}>{errors.endDate}</div>}
-                </div>
-              </div>
-            </form>
           </Modal>
         </div>
       </div>

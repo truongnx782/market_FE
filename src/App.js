@@ -7,9 +7,18 @@ import CustomerComponent from './components/Customer';
 import ContractComponent from './components/Contract';
 import PaymentComponent from './components/Payment';
 import MaintenanceComponent from './components/Maintenance';
-import Login from './components/Login';
 import useAuth from './hooks/useAuth';
-import AboutUs from './components/AboutUs';
+import About from'./components/user/About';
+
+import LoginAdmin from './components/admin/Login';
+import AdminPost from'./components/admin/Post';
+import AdminCategory from'./components/admin/Category';
+
+import LoginUser from './components/user/Login';
+import UserPost from'./components/user/Post';
+import PostList from'./components/user/PostList';
+
+
 
 
 function App() {
@@ -17,16 +26,23 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/about" element={<AboutUs />} />
-      <Route path="/phong/hien-thi" element={<RoomComponent />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/post-list" element={<PostList />} />
+
+      <Route path="/login/user" element={<LoginUser />} />
+      <Route path="/post/user/hien-thi" element={<UserPost/>} />
+
+      <Route path="/login/admin" element={<LoginAdmin />} />
+      <Route path="/post/admin/hien-thi" element={<AdminPost/>} />
+      <Route path="/category/admin/hien-thi" element={<AdminCategory />} />
+
       <Route path="/dich-vu/hien-thi" element={<ServiceComponent />} />
       <Route path="/tien-ich/hien-thi" element={<UtilityComponent />} />
       <Route path="/khach-hang/hien-thi" element={<CustomerComponent />} />
       <Route path="/hop-dong/hien-thi" element={<ContractComponent />} />
       <Route path="/thanh-toan/hien-thi" element={<PaymentComponent />} />
       <Route path="/bao-tri/hien-thi" element={<MaintenanceComponent />} />
-      <Route path="*" element={<Navigate to="/login" />} />
+      <Route path="*" element={<Navigate to="/login/user" />} />
     </Routes>
   );
 }

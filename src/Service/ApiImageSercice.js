@@ -3,7 +3,7 @@ const fetchWithAuth = async (url, options = {}) => {
       ...options,
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'cid': localStorage.getItem('cid'),
+        'uid': localStorage.getItem('uid'),
         ...options.headers
       }
     });
@@ -18,33 +18,37 @@ const fetchWithAuth = async (url, options = {}) => {
 const ApiImageService = {
     async create(formData) {
         try {
-            const response = await fetchWithAuth(`http://localhost:8080/image/create`, {
+            const response = await fetchWithAuth(`http://localhost:8888/market_trade/image/create`, {
                 method: 'POST',
                 body: formData,
             });
             if (!response.ok) {
-                throw new Error('Failed to create data');
+                const errorData = await response.json();
+                const errorMessage = errorData.message || 'Failed';
+                throw new Error(errorMessage);
             }
             return response.json();
         } catch (error) {
-            console.error('Error creating data:', error);
+            console.error('Error:', error);
             throw error;
         }
     },
-    async getAllByRoomId(id) {
+    async getAllByPostId(id) {
         try {
-            const response = await fetchWithAuth(`http://localhost:8080/image/get-by-room-id/${id}`, {
+            const response = await fetchWithAuth(`http://localhost:8888/market_trade/image/get-by-post-id/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
             });
             if (!response.ok) {
-                throw new Error('Failed to fetch data');
+                const errorData = await response.json();
+                const errorMessage = errorData.message || 'Failed';
+                throw new Error(errorMessage);
             }
             return response.json();
         } catch (error) {
-            console.error('Error fetching data:', error);
+            console.error('Error:', error);
             throw error;
         }
     },

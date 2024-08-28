@@ -2,17 +2,11 @@ import React, { useState } from 'react';
 import { Menu, Button } from 'antd';
 import { AppstoreOutlined, CalendarOutlined, MailOutlined, UnorderedListOutlined, SnippetsOutlined, DollarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import fetchWithAuth from '../constants/fetchWithAuth';
-
 
 const menuItems = [
-  { key: '1', icon: <MailOutlined />, label: 'QL Phòng', link: '/phong/hien-thi' },
-  { key: '2', icon: <CalendarOutlined />, label: 'QL Dịch vụ', link: '/dich-vu/hien-thi' },
-  { key: '7', icon: <AppstoreOutlined />, label: 'QL Tiện ích', link: '/tien-ich/hien-thi' },
-  { key: '8', icon: <UnorderedListOutlined />, label: 'QL Khách hàng', link: '/khach-hang/hien-thi' },
-  { key: '9', icon: <SnippetsOutlined />, label: 'QL Hợp đồng', link: '/hop-dong/hien-thi' },
-  { key: '10', icon: <DollarOutlined />, label: 'QL Thanh toán', link: '/thanh-toan/hien-thi' },
-  { key: '11', icon: <DollarOutlined />, label: 'QL Bảo trì', link: '/bao-tri/hien-thi' },
+  { key: '1', icon: <MailOutlined />, label: 'QL Bài đăng', link: '/post/admin/hien-thi' },
+  { key: '2', icon: <CalendarOutlined />, label: 'QL Danh mục', link: '/category/admin/hien-thi' },
+
 ];
 
 const SidebarMenu = () => {
@@ -23,7 +17,7 @@ const SidebarMenu = () => {
   const handleLogout = async () => {
     const token = localStorage.getItem('token');
     try {
-      const response = await fetch('http://localhost:8080/api/auth/logout', {
+      const response = await fetch('http://localhost:8888/market_auth/auth/logout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -33,8 +27,8 @@ const SidebarMenu = () => {
   
       if (response.ok) {
         localStorage.removeItem('token');
-        localStorage.removeItem('cid');
-        navigate('/login'); 
+        localStorage.removeItem('uid');
+        navigate('/login/admin'); 
       } else {
         console.error('Logout failed');
       }

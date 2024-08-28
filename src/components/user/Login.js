@@ -4,6 +4,7 @@ import { FacebookOutlined, TwitterOutlined, GoogleOutlined, GithubOutlined } fro
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import ApiService from '../../Service/ApiAuthService'
 
 const { TabPane } = Tabs;
 const { Title } = Typography;
@@ -20,91 +21,69 @@ const App = () => {
   useEffect(() => {
     const checkToken = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-
-        const response = await fetch('http://localhost:8080/api/auth/check-token', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
+        const response = await ApiService.checkToken();
 
         if (!response.ok) {
-          const refreshResponse = await fetch('http://localhost:8080/api/auth/refresh-token', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
+          const refreshResponse = await ApiService.refreshToken();
           if (refreshResponse.ok) {
+            const uid = response.headers.get('uid') || 'uid not found';
             const token = response.headers.get('token') || 'Token not found';
 
+            localStorage.setItem('uid', uid);
             localStorage.setItem('token', token);
-            navigate('/phong/hien-thi');
+             navigate('/user/post/hien-thi');
           } else {
             console.error('Refresh token failed:', await refreshResponse.text());
-            navigate('/login');
+            navigate('/login/user');
           }
         } else {
           const data = await response.json();
-          const { token } = data;
-
-          if (token) {
-            localStorage.setItem('token', token);
-            navigate('/phong/hien-thi');
+          if (data) {
+             navigate('/post/user/hien-thi');
           }
         }
       } catch (error) {
-        console.error('Token validation failed:', error);
+        console.error('Error:', error);
+        // message.error(`Lỗi: ${error.message}`);
       }
     };
 
     checkToken();
   }, [navigate]);
 
-  const handleLogin = async (values) => {
+  const handleLogin = async () => {
     setLoadingLogin(true);
-    const { username, password } = values;
+    const values = loginForm.getFieldsValue();
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
+      const response = await ApiService.login(values)
       if (response.ok) {
+        const uid = response.headers.get('uid') || 'uid not found';
         const token = response.headers.get('token') || 'Token not found';
+
+        localStorage.setItem('uid', uid);
         localStorage.setItem('token', token);
 
         message.success('Đăng nhập thành công!');
-        navigate('/phong/hien-thi');
+        navigate('/post/user/hien-thi');
       } else {
         const errorData = await response.json();
         message.error('Đăng nhập thất bại!');
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra!');
+      console.error('Error:', error);
+      message.error(`Lỗi: ${error.message}`);
     } finally {
       setLoadingLogin(false);
     }
   };
 
-  const handleRegister = async (values) => {
+  const handleRegister = async () => {
     setLoadingRegister(true);
-    const { email, password, name } = values;
+    const values = registerForm.getFieldsValue();
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
-      });
-
+      const response = await ApiService.register(values);
       const data = await response.json();
       if (response.ok) {
         message.success('Gửi mail thành công!');
@@ -114,23 +93,19 @@ const App = () => {
         message.error('Gửi mail thất bại!');
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra!');
+      console.error('Error:', error);
+      message.error(`Lỗi: ${error.message}`);
     } finally {
       setLoadingRegister(false);
     }
   };
 
-  const handleForgotPassword = async (values) => {
+  const handleForgotPassword = async () => {
     setLoadingForgotPassword(true);
-    const { email, password } = values;
+    const values = forgotPasswordForm.getFieldsValue();
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
+      const response = await ApiService.forgotPassword(values);
       const data = await response.json();
       if (response.ok) {
         message.success('Vui lòng kiểm tra email của bạn để đặt lại mật khẩu!');
@@ -140,7 +115,8 @@ const App = () => {
         message.error('Gửi yêu cầu thất bại!');
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra!');
+      console.error('Error:', error);
+      message.error(`Lỗi: ${error.message}`);
     } finally {
       setLoadingForgotPassword(false);
     }
@@ -152,22 +128,18 @@ const App = () => {
 
       if (token) {
         const decoded = jwtDecode(token);
-        console.log('Decoded Token:', decoded);
 
         const { sub, picture, name, email } = decoded;
 
-        const response = await fetch('http://localhost:8080/api/auth/login-google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sub, picture, name, email }),
-        });
-
+        const response = await ApiService.loginGoogle(sub, picture, name, email)
         if (response.ok) {
+          const uid = response.headers.get('uid') || 'uid not found';
           const token = response.headers.get('token') || 'Token not found';
 
+          localStorage.setItem('uid', uid);
           localStorage.setItem('token', token);
           message.success('Đăng nhập thành công!');
-          navigate('/phong/hien-thi');
+          navigate('/post/user/hien-thi');
         } else {
           const errorData = await response.json();
           message.error('Đăng nhập thất bại!');
@@ -176,16 +148,14 @@ const App = () => {
         console.log('No token found in credentialResponse');
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra!');
+      console.error('Error:', error);
+      message.error(`Lỗi: ${error.message}`);
     }
   };
 
-
-
-
   return (
     <div style={{ maxWidth: 500, margin: '0 auto', padding: 20 }}>
-      <Title level={2} style={{ textAlign: 'center' }}>Chào mừng tới Chợ Việt</Title>
+      <Title level={2} style={{ textAlign: 'center' }}>Chào mừng tới My Home</Title>
 
       <Tabs defaultActiveKey="1" centered>
         <TabPane tab="Đăng nhập" key="1">
@@ -213,7 +183,6 @@ const App = () => {
           <Divider>Hoặc đăng nhập với</Divider>
 
           <Space direction="horizontal" style={{ width: '100%', justifyContent: 'center' }}>
-
             <Button icon={<FacebookOutlined />} />
             <Button icon={<TwitterOutlined />} />
             <GoogleLogin
@@ -233,6 +202,12 @@ const App = () => {
               rules={[{ required: true, message: 'Please input your name!' }]}
             >
               <Input placeholder="Name" />
+            </Form.Item>
+            <Form.Item
+              name="phoneNumber"
+              rules={[{ required: true, message: 'Please input your phone!' }]}
+            >
+              <Input placeholder="phone number" />
             </Form.Item>
             <Form.Item
               name="email"

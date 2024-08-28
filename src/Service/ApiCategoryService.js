@@ -1,9 +1,25 @@
-import fetchWithAuth from '../constants/fetchWithAuth';
+import fetchWithAuth from '../hooks/fetchWithAuth';
 
-const ApiUtilityService = {
+const ApiCategoryService = {
+  async getAll() {
+    try {
+      const response = await fetch('http://localhost:8888/market_trade/category/getAll', {
+        method: 'GET',
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || 'Failed';
+        throw new Error(errorMessage);
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  },
   async search(page, size, search, status) {
     try {
-      const response = await fetchWithAuth('http://localhost:8080/utility/search', {
+      const response = await fetchWithAuth('http://localhost:8888/market_trade/category/admin/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,29 +38,10 @@ const ApiUtilityService = {
     }
   },
 
-  async getAll() {
-    try {
-      const response = await fetchWithAuth('http://localhost:8080/utility', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.message || 'Failed';
-        throw new Error(errorMessage);
-      }
-      return response.json();
-    } catch (error) {
-      console.error('Error:', error);
-      throw error;
-    }
-  },
 
   async getById(id) {
     try {
-      const response = await fetchWithAuth(`http://localhost:8080/utility/${id}`, {
+      const response = await fetchWithAuth(`http://localhost:8888/market_trade/category/admin/${id}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -62,14 +59,15 @@ const ApiUtilityService = {
     }
   },
 
-  async update(id, dataToUpdate) {
+  async update(id, formData) {
     try {
-      const response = await fetchWithAuth(`http://localhost:8080/utility/${id}`, {
+      const response = await fetch(`http://localhost:8888/market_trade/category/admin/update/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'uid': localStorage.getItem('uid'),
         },
-        body: JSON.stringify(dataToUpdate),
+        body: formData,
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -83,11 +81,15 @@ const ApiUtilityService = {
     }
   },
 
-  async create(data) {
+  async create(formData) {
     try {
-      const response = await fetchWithAuth('http://localhost:8080/utility', {
+      const response = await fetch('http://localhost:8888/market_trade/category/admin/create', {
         method: 'POST',
-        body: JSON.stringify(data),
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'uid': localStorage.getItem('uid'),
+        },
+        body: formData,
       });
       if (!response.ok) {
         const errorData = await response.json();
@@ -103,7 +105,7 @@ const ApiUtilityService = {
 
   async delete(id) {
     try {
-      const response = await fetchWithAuth(`http://localhost:8080/utility/delete/${id}`, {
+      const response = await fetchWithAuth(`http://localhost:8888/market_trade/category/admin/delete/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -120,10 +122,10 @@ const ApiUtilityService = {
       throw error;
     }
   },
-  
+
   async restore(id) {
     try {
-      const response = await fetchWithAuth(`http://localhost:8080/utility/restore/${id}`, {
+      const response = await fetchWithAuth(`http://localhost:8888/market_trade/category/admin/restore/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -143,12 +145,12 @@ const ApiUtilityService = {
 
   async upload(formData) {
     try {
-      const response = await fetch('http://localhost:8080/utility/upload', {
+      const response = await fetch('http://localhost:8888/market_trade/category/admin/upload', {
         method: 'POST',
         body: formData,
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'cid': localStorage.getItem('cid'),
+          'uid': localStorage.getItem('uid'),
         },
       });
 
@@ -167,7 +169,7 @@ const ApiUtilityService = {
 
   async downloadTemplate() {
     try {
-      const response = await fetchWithAuth('http://localhost:8080/utility/template', {
+      const response = await fetchWithAuth('http://localhost:8888/market_trade/category/admin/template', {
         method: 'GET',
       });
       if (!response.ok) {
@@ -183,7 +185,7 @@ const ApiUtilityService = {
 
   async exportData(page, size, search, status) {
     try {
-      const response = await fetchWithAuth('http://localhost:8080/utility/export', {
+      const response = await fetchWithAuth('http://localhost:8888/market_trade/category/admin/export', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -203,7 +205,6 @@ const ApiUtilityService = {
     }
   },
 
+}
 
-};
-
-export default ApiUtilityService;
+export default ApiCategoryService;

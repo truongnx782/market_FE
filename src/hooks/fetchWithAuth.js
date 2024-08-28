@@ -3,15 +3,11 @@ const fetchWithAuth = async (url, options = {}) => {
     ...options,
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      'cid': localStorage.getItem('cid'),
+      'uid': localStorage.getItem('uid'),
       'Content-Type': 'application/json',
       ...options.headers
     }
   });
-  // if (response.status === 401) {
-  //   window.location.href = '/login';
-  //   return;
-  // }
   return response;
 };
 
