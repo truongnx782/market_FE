@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Input, Pagination, Card, Row, Col, message,Modal } from 'antd';
+import { Layout, Menu, Button, Input, Pagination, Card, Row, Col, message, Modal } from 'antd';
 import { HomeOutlined, TagOutlined, InfoCircleOutlined, PhoneOutlined } from '@ant-design/icons';
 import ApiPostService from './../../Service/ApiPostService';
 import 'antd/dist/reset.css';
@@ -20,8 +20,8 @@ function TableComponent() {
     const fetchData = async () => {
         try {
             const response = await ApiPostService.searchPostList(page - 1, pageSize, search);
-                setProducts(response.content);
-                setTotal(response.totalElements);
+            setProducts(response.content);
+            setTotal(response.totalElements);
 
         } catch (error) {
             console.log('error:', error);
@@ -42,6 +42,17 @@ function TableComponent() {
             <Content>
                 <FeaturedItems items={products} page={page} pageSize={pageSize} total={total} setPage={setPage} setPageSize={setPageSize} />
             </Content>
+            <Pagination
+                current={page}
+                pageSize={pageSize}
+                total={total}
+                showSizeChanger
+                pageSizeOptions={['10', '20', '50']}
+                onChange={(page, pageSize) => {
+                    setPage(page);
+                    setPageSize(pageSize);
+                }}
+            />
             <FooterComponent />
         </Layout>
     );
@@ -89,7 +100,7 @@ const PostButton = () => (
 );
 
 // FeaturedItems Component
-const FeaturedItems = ({ items, page, pageSize, total, setPage, setPageSize }) => {
+const FeaturedItems = ({ items }) => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
 
@@ -104,43 +115,71 @@ const FeaturedItems = ({ items, page, pageSize, total, setPage, setPageSize }) =
     };
 
     return (
-    <div className="my-4">
-        <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
-            <Row gutter={[16, 16]} style={{ flexWrap: 'nowrap', margin: 0 }}>
-                {items.map(item => (
-                    <Col
-                        key={item.id}
-                        xs={24}
-                        sm={12}
-                        md={8}
-                        lg={4}
-                        style={{ textAlign: 'center' }}
-                        onClick={() => showModal(item)} // Open modal on click
+        <div className="my-4">
+            <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                <Row gutter={[16, 16]} style={{ flexWrap: 'nowrap', margin: 0 }}>
+                    {items.map(item => (
+                        <Col
+                            key={item.id}
+                            xs={24}
+                            sm={12}
+                            md={8}
+                            lg={4}
+                            style={{ textAlign: 'center' }}
+                            onClick={() => showModal(item)} // Open modal on click
 
-                    >
-                        <Card
-                            hoverable
-                            cover={
-                                <div style={{ position: 'relative', paddingTop: '75%' }}>
-                                    <img
-                                        alt={item.title}
-                                        src={item.imageUrl}
-                                        style={{
-                                            position: 'absolute',
-                                            top: 0,
-                                            left: 0,
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            borderRadius: '4px'
-                                        }}
-                                    />
-                                </div>
-                            }
                         >
-                            <Card.Meta
-                                title={
+                            <Card
+                                hoverable
+                                cover={
+                                    <div style={{ position: 'relative', paddingTop: '75%' }}>
+                                        <img
+                                            alt={item.title}
+                                            src={item.imageUrl}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                objectFit: 'cover',
+                                                borderRadius: '4px'
+                                            }}
+                                        />
+                                    </div>
+                                }
+                            >
+                                <Card.Meta
+                                    title={
+                                        <span
+                                            style={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                display: 'block',
+                                                maxWidth: '100%',
+                                            }}
+                                        >
+                                            {item.title}
+                                        </span>
+                                    }
+                                    description={
+                                        <span
+                                            style={{
+                                                whiteSpace: 'nowrap',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                display: 'block',
+                                                maxWidth: '100%',
+                                            }}
+                                        >
+                                            {item.description}
+                                        </span>
+                                    }
+                                />
+                                <div className="d-flex justify-content-between mt-2">
                                     <span
+                                        className="text-muted"
                                         style={{
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
@@ -149,11 +188,10 @@ const FeaturedItems = ({ items, page, pageSize, total, setPage, setPageSize }) =
                                             maxWidth: '100%',
                                         }}
                                     >
-                                        {item.title}
+                                        {item.createdAt}
                                     </span>
-                                }
-                                description={
                                     <span
+                                        className="text-muted"
                                         style={{
                                             whiteSpace: 'nowrap',
                                             overflow: 'hidden',
@@ -162,53 +200,16 @@ const FeaturedItems = ({ items, page, pageSize, total, setPage, setPageSize }) =
                                             maxWidth: '100%',
                                         }}
                                     >
-                                        {item.description}
+                                        {item.location}
                                     </span>
-                                }
-                            />
-                            <div className="d-flex justify-content-between mt-2">
-                                <span
-                                    className="text-muted"
-                                    style={{
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        display: 'block',
-                                        maxWidth: '100%',
-                                    }}
-                                >
-                                    {item.createdAt}
-                                </span>
-                                <span
-                                    className="text-muted"
-                                    style={{
-                                        whiteSpace: 'nowrap',
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        display: 'block',
-                                        maxWidth: '100%',
-                                    }}
-                                >
-                                    {item.location}
-                                </span>
-                            </div>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-        </div>
-        <Pagination
-            current={page}
-            pageSize={pageSize}
-            total={total}
-            showSizeChanger
-            pageSizeOptions={['10', '20', '50']}
-            onChange={(page, pageSize) => {
-                setPage(page);
-                setPageSize(pageSize);
-            }}
-        />
-                    <Modal
+                                </div>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            </div>
+
+            <Modal
                 title={selectedItem?.title}
                 open={isModalVisible}
                 onCancel={handleCancel}
@@ -230,12 +231,13 @@ const FeaturedItems = ({ items, page, pageSize, total, setPage, setPageSize }) =
                     </div>
                 )}
             </Modal>
-    </div>
-);
+        </div>
+    );
 };
 
 // Footer Component
 const FooterComponent = () => (
+
     <Footer style={{ textAlign: 'center' }}>
         <p>&copy; {new Date().getFullYear()} Chợ Việt. All rights reserved.</p>
     </Footer>
