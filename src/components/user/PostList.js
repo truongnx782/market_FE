@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Layout, Menu, Button, Input, Pagination, Card, Row, Col, message, Modal } from 'antd';
 import { HomeOutlined, TagOutlined, InfoCircleOutlined, PhoneOutlined } from '@ant-design/icons';
 import ApiPostService from './../../Service/ApiPostService';
@@ -12,14 +13,15 @@ function TableComponent() {
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
-
+    const categoryId = +useParams().categoryId;
+    
     useEffect(() => {
         fetchData();
     }, [page, pageSize, search]);
 
     const fetchData = async () => {
         try {
-            const response = await ApiPostService.searchPostList(page - 1, pageSize, search);
+            const response = await ApiPostService.searchPostList(page - 1, pageSize, search, categoryId);
             setProducts(response.content);
             setTotal(response.totalElements);
 
@@ -30,8 +32,8 @@ function TableComponent() {
     };
 
     const navItems = [
-        { href: '#home', icon: <HomeOutlined />, text: 'Trang Chủ' },
-        { href: '#categories', icon: <TagOutlined />, text: 'Bài đăng' },
+        { href: 'http://localhost:3000/about', icon: <HomeOutlined />, text: 'Trang Chủ' },
+        { href: 'http://localhost:3000/post-list', icon: <TagOutlined />, text: 'Bài đăng' },
         { href: '#about', icon: <InfoCircleOutlined />, text: 'Giới Thiệu' },
         { href: '#contact', icon: <PhoneOutlined />, text: 'Liên Hệ' },
     ];

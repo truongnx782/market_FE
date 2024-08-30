@@ -73,10 +73,10 @@ const HeaderComponent = ({ navItems }) => (
                     {navItems.map(({ href, icon, text }, index) => (
                         <Menu.Item key={index} icon={icon} style={{ padding: '0 8px' }}>
                             <a href={href}>{text}</a>
-                            
+
                         </Menu.Item>
                     ))}
-                      <PostButton />
+                    <PostButton />
                 </div>
                 <div style={{ display: 'flex' }}>
                     {/* <SearchForm /> */}
@@ -138,27 +138,29 @@ const Categories = ({ categories }) => (
         <Row gutter={[16, 16]}>
             {categories.map(item => (
                 <Col xs={24} sm={12} md={8} lg={6} key={item.id} style={{ textAlign: 'center' }}>
-                    <Card
-                        hoverable
-                        cover={
-                            <div style={{ position: 'relative', paddingTop: '75%' }}>
-                                <img
-                                    src={item.url}
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        width: '100%',
-                                        height: '100%',
-                                        objectFit: 'cover',
-                                        borderRadius: '4px'
-                                    }}
-                                />
-                            </div>
-                        }
-                    >
-                        <Card.Meta title={item.categoryName} />
-                    </Card>
+                    <a href={`http://localhost:3000/post-list/${item.id}`}>
+                        <Card
+                            hoverable
+                            cover={
+                                <div style={{ position: 'relative', paddingTop: '75%' }}>
+                                    <img
+                                        src={item.url}
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            height: '100%',
+                                            objectFit: 'cover',
+                                            borderRadius: '4px'
+                                        }}
+                                    />
+                                </div>
+                            }
+                        >
+                            <Card.Meta title={item.categoryName} />
+                        </Card>
+                    </a>
                 </Col>
             ))}
         </Row>

@@ -35,7 +35,7 @@ const App = () => {
         }
       } catch (error) {
         console.error('Error:', error);
-        message.error(`Lỗi: ${error.message}`);
+        // message.error(`Lỗi: ${error.message}`);
       }
     };
 

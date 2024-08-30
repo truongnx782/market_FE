@@ -18,11 +18,14 @@ const ApiPostService={
         }
       },
 
-      async searchPostList(page, size, search) {
+      async searchPostList(page, size, search,categoryId) {
         try {
-          const response = await fetchWithAuth('http://localhost:8888/market_trade/post/search', {
+          const response = await fetch('http://localhost:8888/market_trade/post/search', {
             method: 'POST',
-            body: JSON.stringify({ page, size, search }),
+            body: JSON.stringify({ page, size, search ,categoryId}),
+            headers: {
+              'Content-Type': 'application/json',
+            },
           });
           if (!response.ok) {
             const errorData = await response.json();
