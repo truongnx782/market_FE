@@ -12,8 +12,6 @@ import UserPost from'./components/user/Post';
 import PostList from'./components/user/PostList';
 
 
-
-
 function App() {
   useAuth(); 
 
