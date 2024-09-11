@@ -3,8 +3,8 @@ import ApiService from '../../Service/ApiPostService';
 import ApiCategoryService from '../../Service/ApiCategoryService';
 import ApiImageService from '../../Service/ApiImageSercice';
 import SidebarMenu from './SidebarMenu';
-import { Table, Button, Input, Modal, Select, Pagination, message, Upload, Dropdown, Form, InputNumber } from 'antd';
-import { EditOutlined, DeleteOutlined, RetweetOutlined, UploadOutlined, DownloadOutlined, DownCircleFilled, ExportOutlined } from '@ant-design/icons';
+import { Table, Button, Input, Modal, Select, Pagination, message, Upload, Form, InputNumber } from 'antd';
+import { EditOutlined, DeleteOutlined, RetweetOutlined, UploadOutlined } from '@ant-design/icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function TableComponent() {
@@ -21,6 +21,11 @@ function TableComponent() {
     const [modalVisible, setModalVisible] = useState(false);
     const { Option } = Select;
     const [form] = Form.useForm();
+
+    const [fileList, setFileList] = useState([]);
+    const handleChange = ({ fileList }) => setFileList(fileList);
+    const [previewVisible, setPreviewVisible] = useState(false);
+    const [previewImage, setPreviewImage] = useState('');
 
 
     useEffect(() => {
@@ -53,8 +58,7 @@ function TableComponent() {
         try {
             const result = await ApiService.getById(id);
             const Images = await ApiImageService.getAllByPostId(id);
-            setFetchedImages(Images);
-            setSelectedImages([]);
+            setFileList(Images);
             form.setFieldsValue(result);
             setIsNew(false);
             setModalVisible(true);
@@ -78,9 +82,14 @@ function TableComponent() {
                 // //create image
                 const formData = new FormData();
                 formData.append('postId', createdData.id);
-                selectedImages.forEach((image) => {
-                    formData.append('file', image);
+                fileList.forEach(file => {
+                    formData.append("file", file.originFileObj);
                 });
+
+                if (fileList.length === 0) {
+                    message.error("Không được bỏ trống ảnh.");
+                    return;
+                }
                 await ApiImageService.create(formData);
 
                 message.success('Thêm mới thành công!');
@@ -89,19 +98,26 @@ function TableComponent() {
                 if (!values) {
                     return;
                 }
-                const id = form.getFieldValue('id');
-                await ApiService.update(id, values);
 
-                //create image
                 const formData = new FormData();
+                const id = form.getFieldValue('id');
+                if (fileList.length === 0) {
+                    message.error("Không được bỏ trống ảnh.");
+                    return;
+
+                }
                 formData.append('postId', id);
-                selectedImages.forEach((image) => {
-                    formData.append('file', image);
+                fileList.forEach(file => {
+                    formData.append("file", file.originFileObj);
                 });
 
-                fetchedImages.forEach((image) => {
-                    formData.append('image', image.id)
-                })
+                fileList.forEach(file => {
+                    if (file.url) {
+                        formData.append("url", file.url);
+                    }
+                });
+
+                await ApiService.update(id, values);
                 await ApiImageService.create(formData);
 
                 message.success('Cập nhật thành công!');
@@ -115,99 +131,47 @@ function TableComponent() {
     };
 
     const remove = async (id) => {
-      try {
-        await ApiService.delete(id);
-        fetchData();
-        message.success('Xoá thành công.');
-      } catch (error) {
-        console.error('Error:', error);
-        message.error(`Lỗi: ${error.message}`);
-      }
+        try {
+            await ApiService.delete(id);
+            fetchData();
+            message.success('Xoá thành công.');
+        } catch (error) {
+            console.error('Error:', error);
+            message.error(`Lỗi: ${error.message}`);
+        }
     };
 
     const restore = async (id) => {
-      try {
-        await ApiService.restore(id);
-        fetchData();
-        message.success('Khôi phục thành công.');
-      } catch (error) {
-        console.error('Error:', error);
-        message.error(`Lỗi: ${error.message}`);
-      }
-    };
-
-    const handleUpload = async ({ file }) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
         try {
-            await ApiService.upload(formData);
-            message.success('Tải lên thành công.');
+            await ApiService.restore(id);
             fetchData();
-        } catch (error) {
-            console.error('Error:', error);
-            message.error(`Lỗi: ${error.message}`);
-        }
-        finally {
-            fetchData();
-        }
-    };
-
-    const downloadTemplate = async () => {
-        try {
-            const blob = await ApiService.downloadTemplate();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'template.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            message.success('Tải về thành công.');
+            message.success('Khôi phục thành công.');
         } catch (error) {
             console.error('Error:', error);
             message.error(`Lỗi: ${error.message}`);
         }
     };
-
-    const exportData = async () => {
-        try {
-            const blob = await ApiService.exportData(page - 1, pageSize, search, status);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'template.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            message.success('Tải về thành công.');
-        } catch (error) {
-            console.error('Error:', error);
-            message.error(`Lỗi: ${error.message}`);
-        }
-    };
-
 
     const confirmDelete = (id) => {
-      Modal.confirm({
-        title: 'Xác nhận',
-        content: 'Bạn có chắc chắn muốn xoá phòng này?',
-        okText: 'Xác nhận',
-        okType: 'danger',
-        cancelText: 'Huỷ',
-        onOk: () => remove(id),
-      });
+        Modal.confirm({
+            title: 'Xác nhận',
+            content: 'Bạn có chắc chắn muốn xoá phòng này?',
+            okText: 'Xác nhận',
+            okType: 'danger',
+            cancelText: 'Huỷ',
+            onOk: () => remove(id),
+        });
     };
 
     const confirmRestore = (id) => {
-      Modal.confirm({
-        title: 'Xác nhận',
-        content: 'Bạn có chắc chắn muốn khôi phục phòng này?',
-        okText: 'Xác nhận',
-        okType: 'primary',
-        cancelText: 'Huỷ',
-        onOk: () => restore(id),
-      });
+        Modal.confirm({
+            title: 'Xác nhận',
+            content: 'Bạn có chắc chắn muốn khôi phục phòng này?',
+            okText: 'Xác nhận',
+            okType: 'primary',
+            cancelText: 'Huỷ',
+            onOk: () => restore(id),
+        });
     };
 
     const confirmSave = () => {
@@ -219,28 +183,6 @@ function TableComponent() {
             cancelText: 'Huỷ',
             onOk: () => save(),
         });
-    };
-
-    const handleImageChange = (event) => {
-        const files = Array.from(event.target.files);
-        const totalImages = fetchedImages.length + selectedImages.length + files.length;
-
-        if (totalImages > 10) {
-            alert(`You can only upload up to 10 images. Currently, you have ${fetchedImages.length + selectedImages.length} images and trying to add ${files.length} more.`);
-            return;
-        }
-        setSelectedImages((prevImages) => [...prevImages, ...files]);
-    };
-
-    const handleRemoveImage = (indexToRemove) => {
-        setSelectedImages((prevImages) =>
-            prevImages.filter((_, index) => index !== indexToRemove)
-        );
-    };
-
-    const handleRemoveImagefetched = (imageId) => {
-        const updatedImages = fetchedImages.filter(image => image.id !== imageId);
-        setFetchedImages(updatedImages);
     };
 
     const onHide = () => {
@@ -257,34 +199,6 @@ function TableComponent() {
         setIsNew(true);
     };
 
-
-    // const validate = () => {
-    //   let isValid = true;
-    //   const errors = {};
-
-    //   if (!selectedData?.roomName?.trim()) {
-    //     errors.roomName = 'Tên phòng không được để trống.';
-    //     isValid = false;
-    //   }
-
-    //   if (!selectedData?.area?.trim()) {
-    //     errors.area = 'Diện tích không được để trống.';
-    //     isValid = false;
-    //   }
-
-    //   if (!selectedData?.rentPrice || isNaN(selectedData.rentPrice) || selectedData.rentPrice < 0) {
-    //     errors.rentPrice = 'Giá thuê không hợp lệ.';
-    //     isValid = false;
-    //   }
-
-    //   if (!selectedData?.address?.trim()) {
-    //     errors.address = 'Địa chỉ không được để trống.';
-    //     isValid = false;
-    //   }
-
-    //   setErrors(errors);
-    //   return isValid;
-    // };
 
     const columns = [
         {
@@ -385,7 +299,7 @@ function TableComponent() {
                         <Button
                             icon={<RetweetOutlined />}
                             style={{ color: 'blue', borderColor: 'blue' }}
-                        onClick={() => confirmRestore(value.id)}  
+                            onClick={() => confirmRestore(value.id)}
                         >
                         </Button>
                     ) : (
@@ -398,40 +312,6 @@ function TableComponent() {
                 </div>
             ),
             width: '10%',
-        },
-    ];
-
-
-    const items = [
-        {
-            key: '1',
-            label: (
-                <Upload
-                    customRequest={handleUpload}
-                    showUploadList={false}
-                    accept=".xlsx, .xls"
-                >
-                    <Button icon={<UploadOutlined />} type="primary">
-                        Import Excel
-                    </Button>
-                </Upload>
-            ),
-        },
-        {
-            key: '2',
-            label: (
-                <Button icon={<ExportOutlined />} onClick={exportData}>
-                    Export
-                </Button>
-            ),
-        },
-        {
-            key: '3',
-            label: (
-                <Button icon={<DownloadOutlined />} onClick={downloadTemplate}>
-                    Template
-                </Button>
-            ),
         },
     ];
 
@@ -472,13 +352,6 @@ function TableComponent() {
                                 <Option value={0}>Ngưng hoạt động</Option>
                             </Select>
                         </div>
-
-                        <Dropdown
-                            menu={{ items }}
-                            placement="bottom"
-                            arrow>
-                            <DownCircleFilled style={{ fontSize: '30px', color: 'blue' }} />
-                        </Dropdown>
                     </div>
 
                     <Table
@@ -486,7 +359,7 @@ function TableComponent() {
                         dataSource={data}
                         rowKey="id"
                         pagination={false}
-                        scroll={{ y: `calc(100vh - 35vh)` }} 
+                        scroll={{ y: `calc(100vh - 35vh)` }}
                         className='table responsive'
                     />
                     <Pagination
@@ -579,92 +452,46 @@ function TableComponent() {
                                     </Form.Item>
                                 </div>
 
-                                <div>
-                                    <Form.Item
-                                        name="description"
-                                        label="Mô tả"
-                                        rules={[{ required: true, message: 'Mô tả không được để trống' }]}
-                                        style={{ marginBottom: '4px' }}
+                                <Form.Item
+                                    name="description"
+                                    label="Mô tả"
+                                    rules={[{ required: true, message: 'Mô tả không được để trống' }]}
+                                    style={{ marginBottom: '4px' }}
+                                >
+                                    <Input.TextArea />
+                                </Form.Item>
+
+                                <Form.Item
+                                    label="Chọn hình ảnh"
+                                >
+                                    <Upload
+                                        listType="picture"
+                                        onChange={handleChange}
+                                        fileList={fileList}
+                                        beforeUpload={() => false}
+                                        onPreview={(file) => {
+                                            setPreviewImage(file.url || URL.createObjectURL(file.originFileObj));
+                                            setPreviewVisible(true);
+                                        }}
+                                        maxCount={5}
                                     >
-                                        <Input.TextArea />
-                                    </Form.Item>
-                                </div>
-
-
-                                <div style={{ marginTop: 10 }}>
-                                    <label>Hình ảnh</label>
-                                    <input
-                                        type="file"
-                                        id="images"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={handleImageChange}
-                                        className="form-control"
-                                    />
-                                    <div className="image-preview mt-2 d-flex">
-                                        {/* Render fetched images */}
-                                        {fetchedImages.map((imageData) => (
-                                            <div key={imageData.id} className="position-relative">
-                                                <a href={imageData.url} target="_blank" rel="noopener noreferrer">
-                                                    <img
-                                                        src={imageData.url}
-                                                        alt={`fetched ${imageData.id}`}
-                                                        className="image-thumbnail"
-                                                        style={{
-                                                            width: '110px',
-                                                            height: '110px',
-                                                            objectFit: 'cover',
-                                                            marginRight: '5px',
-                                                            border: '2px solid #4CAF50',
-                                                            borderRadius: '2px',
-                                                        }}
-                                                    />
-                                                </a>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-danger btn-sm position-absolute"
-                                                    style={{ top: '5px', right: '5px' }}
-                                                    onClick={() => handleRemoveImagefetched(imageData.id)}
-                                                >
-                                                    &times;
-                                                </button>
+                                        {fileList.length < 5 && (
+                                            <div>
+                                                <Button icon={<UploadOutlined />} />
                                             </div>
-                                        ))}
-
-                                        {/* Render selected images */}
-                                        {selectedImages.map((image, index) => (
-                                            <div key={index} className="position-relative">
-                                                <a href={URL.createObjectURL(image)} target="_blank" rel="noopener noreferrer">
-                                                    <img
-                                                        src={URL.createObjectURL(image)}
-                                                        alt={`preview ${index}`}
-                                                        className="image-thumbnail"
-                                                        style={{
-                                                            width: '110px',
-                                                            height: '110px',
-                                                            objectFit: 'cover',
-                                                            marginRight: '5px',
-                                                            border: '2px solid #ffd700',
-                                                            borderRadius: '2px',
-                                                        }}
-                                                    />
-                                                </a>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-danger btn-sm position-absolute"
-                                                    style={{ top: '5px', right: '5px' }}
-                                                    onClick={() => handleRemoveImage(index)}
-                                                >
-                                                    &times;
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                        )}
+                                    </Upload>
+                                    <Modal
+                                        open={previewVisible}
+                                        footer={null}
+                                        onCancel={() => setPreviewVisible(false)}
+                                    >
+                                        <img alt="Preview" style={{ width: '100%' }} src={previewImage} />
+                                    </Modal>
+                                </Form.Item>
 
                             </div>
                         </Form>
-
 
                     </Modal>
                 </div>

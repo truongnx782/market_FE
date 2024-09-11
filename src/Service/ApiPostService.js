@@ -1,8 +1,11 @@
 import fetchWithAuth from '../hooks/fetchWithAuth';
+import {API_BASE_URL}  from '../constants/Connect'
+
 const ApiPostService={
+  
     async searchByUid(page, size, search, status) {
         try {
-          const response = await fetchWithAuth('http://localhost:8888/market_trade/post/search-by-uid', {
+          const response = await fetchWithAuth(API_BASE_URL+'/market_trade/post/search-by-uid', {
             method: 'POST',
             body: JSON.stringify({ page, size, search, status }),
           });
@@ -192,7 +195,30 @@ const ApiPostService={
             console.error('Error:', error);
             throw error;
         }
-    }
+    },
+
+    async exportData(page, size, search, statusPost) {
+      try {
+        const response = await fetchWithAuth('http://localhost:8888/market_trade/post/admin/export', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ page, size, search, statusPost }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          const errorMessage = errorData.message || 'Failed';
+          throw new Error(errorMessage);
+        }
+        return response.blob();
+      } catch (error) {
+        console.error('Error:', error);
+        throw error;
+      }
+    },
+
 }
 
 export default ApiPostService;

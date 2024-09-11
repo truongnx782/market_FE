@@ -10,7 +10,7 @@ const useAuth = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          // navigate('/login');
+          // navigate('/login/user');
           return;
         }
 
@@ -37,7 +37,7 @@ const useAuth = () => {
             console.error('Refresh token failed:', await refreshResponse.text());
             localStorage.removeItem('token');
             localStorage.removeItem('uid');
-            // navigate('/login');
+            navigate('/login/user');
             return;
           }
         }
@@ -46,7 +46,7 @@ const useAuth = () => {
         console.error('Token validation failed:', error);
         localStorage.removeItem('token');
         localStorage.removeItem('uid');
-        // navigate('/login');
+        navigate('/login/user');
       } finally {
         setIsLoading(false);
       }

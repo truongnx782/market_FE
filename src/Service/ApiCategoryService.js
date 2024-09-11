@@ -1,6 +1,7 @@
 import fetchWithAuth from '../hooks/fetchWithAuth';
 
 const ApiCategoryService = {
+  
   async getAll() {
     try {
       const response = await fetch('http://localhost:8888/market_trade/category/getAll', {
@@ -17,6 +18,7 @@ const ApiCategoryService = {
       throw error;
     }
   },
+
   async search(page, size, search, status) {
     try {
       const response = await fetchWithAuth('http://localhost:8888/market_trade/category/admin/search', {
@@ -37,7 +39,6 @@ const ApiCategoryService = {
       throw error;
     }
   },
-
 
   async getById(id) {
     try {

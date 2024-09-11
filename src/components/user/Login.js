@@ -23,28 +23,27 @@ const App = () => {
       try {
         const response = await ApiService.checkToken();
 
-        if (!response.ok) {
-          const refreshResponse = await ApiService.refreshToken();
-          if (refreshResponse.ok) {
-            const uid = response.headers.get('uid') || 'uid not found';
-            const token = response.headers.get('token') || 'Token not found';
+        // if (!response.ok) {
+        //   const refreshResponse = await ApiService.refreshToken();
+        //   if (refreshResponse.ok) {
+        //     const uid = response.headers.get('uid') || 'uid not found';
+        //     const token = response.headers.get('token') || 'Token not found';
 
-            localStorage.setItem('uid', uid);
-            localStorage.setItem('token', token);
-             navigate('/user/post/hien-thi');
-          } else {
-            console.error('Refresh token failed:', await refreshResponse.text());
-            navigate('/login/user');
-          }
-        } else {
-          const data = await response.json();
-          if (data) {
-             navigate('/post/user/hien-thi');
-          }
-        }
+        //     localStorage.setItem('uid', uid);
+        //     localStorage.setItem('token', token);
+        //      navigate('/user/post/hien-thi');
+        //   } else {
+        //     console.error('Refresh token failed:', await refreshResponse.text());
+        //     navigate('/login/user');
+        //   }
+        // } else {
+        //   const data = await response.json();
+        //   if (data) {
+        //      navigate('/post/user/hien-thi');
+        //   }
+        // }
       } catch (error) {
         console.error('Error:', error);
-        // message.error(`Lỗi: ${error.message}`);
       }
     };
 

@@ -15,10 +15,14 @@ function TableComponent() {
     const [statusPost, setStatusPost] = useState(null);
     const [total, setTotal] = useState(0);
     const [categorys, setCategorys] = useState([]);
-    const [fetchedImages, setFetchedImages] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const { Option } = Select;
     const [form] = Form.useForm();
+
+    const [fileList, setFileList] = useState([]);
+    const handleChange = ({ fileList }) => setFileList(fileList);
+    const [previewVisible, setPreviewVisible] = useState(false);
+    const [previewImage, setPreviewImage] = useState('');
 
 
     useEffect(() => {
@@ -51,7 +55,7 @@ function TableComponent() {
         try {
             const result = await ApiService.getById(id);
             const Images = await ApiImageService.getAllByPostId(id);
-            setFetchedImages(Images);
+            setFileList(Images);
             form.setFieldsValue(result);
             setModalVisible(true);
         } catch (error) {
@@ -63,19 +67,21 @@ function TableComponent() {
     const exportData = async () => {
         try {
             const blob = await ApiService.exportData(page - 1, pageSize, search, statusPost);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'template.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            const fileHandle = await window.showSaveFilePicker({
+                suggestedName: 'template.xlsx',
+                types: [{ description: 'Excel Files', accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] } }]
+            });
+            const writableStream = await fileHandle.createWritable();
+            await writableStream.write(blob);
+            await writableStream.close();
             message.success('Tải về thành công.');
         } catch (error) {
             console.error('Error:', error);
             message.error(`Lỗi: ${error.message}`);
         }
     };
+
+
 
     const onHide = () => {
         setModalVisible(false);
@@ -174,6 +180,8 @@ function TableComponent() {
             ),
         }
     ];
+
+
 
     return (
         <div style={{ width: '100%' }}>
@@ -316,8 +324,30 @@ function TableComponent() {
                                 <div style={{ marginTop: 10 }}>
                                     <label>Hình ảnh</label>
 
-                                    <div className="image-preview mt-2 d-flex">
-                                        {/* Render fetched images */}
+                                    <Form.Item
+                                    >
+                                        <Upload
+                                            listType="picture-card"
+                                            fileList={fileList}
+                                            beforeUpload={() => false}
+                                            onPreview={(file) => {
+                                                setPreviewImage(file.url || URL.createObjectURL(file.originFileObj));
+                                                setPreviewVisible(true);
+                                            }}
+                                            showUploadList={{ showRemoveIcon: false, showPreviewIcon: true }} 
+                                        >
+
+                                        </Upload>
+                                        <Modal
+                                            open={previewVisible}
+                                            footer={null}
+                                            onCancel={() => setPreviewVisible(false)}
+                                        >
+                                            <img alt="Preview" style={{ width: '100%' }} src={previewImage} />
+                                        </Modal>
+                                    </Form.Item>
+
+                                    {/* <div className="image-preview mt-2 d-flex">
                                         {fetchedImages.map((imageData) => (
                                             <div key={imageData.id} className="position-relative">
                                                 <a href={imageData.url} target="_blank" rel="noopener noreferrer">
@@ -337,8 +367,7 @@ function TableComponent() {
                                                 </a>
                                             </div>
                                         ))}
-
-                                    </div>
+                                    </div> */}
                                 </div>
 
                             </div>

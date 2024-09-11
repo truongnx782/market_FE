@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ApiService from '../../Service/ApiCategoryService';
 import SidebarMenu from './SidebarMenu';
 import { Table, Button, Input, Modal, Select, Pagination, message, Upload, Dropdown, Form } from 'antd';
-import { EditOutlined, DeleteOutlined, RetweetOutlined, UploadOutlined, DownloadOutlined, DownCircleFilled, ExportOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, RetweetOutlined, UploadOutlined, DownloadOutlined, DownCircleFilled, ExportOutlined } from '@ant-design/icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 function TableComponent() {
@@ -16,6 +16,12 @@ function TableComponent() {
   const [status, setStatus] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { Option } = Select;
+  
+  const [fileList, setFileList] = useState([]);
+  const handleChange = ({ fileList }) => setFileList(fileList);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+
   useEffect(() => {
     fetchData();
   }, [page, pageSize, search, status]);
@@ -304,11 +310,6 @@ function TableComponent() {
     },
   ];
 
-
-  const [fileList, setFileList] = useState([]);
-  const handleChange = ({ fileList }) => setFileList(fileList);
-  const [previewVisible, setPreviewVisible] = useState(false);
-  const [previewImage, setPreviewImage] = useState('');
 
   return (
     <div style={{ width: '100%' }}>

@@ -11,6 +11,8 @@ import LoginUser from './components/user/Login';
 import UserPost from'./components/user/Post';
 import PostList from'./components/user/PostList';
 
+import Chat from './components/user/Chat'
+
 
 function App() {
   useAuth(); 
@@ -21,9 +23,9 @@ function App() {
       <Route path="/post-list" element={<PostList />} />
       <Route path="/post-list/:categoryId" element={<PostList />} />
 
-
       <Route path="/login/user" element={<LoginUser />} />
       <Route path="/post/user/hien-thi" element={<UserPost/>} />
+      <Route path="/chat" element={<Chat/>} />
 
       <Route path="/login/admin" element={<LoginAdmin />} />
       <Route path="/post/admin/hien-thi" element={<AdminPost/>} />

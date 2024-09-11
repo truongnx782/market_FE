@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Layout, Menu, Button, Input, Pagination, Card, Row, Col, message, Modal } from 'antd';
+import { Layout, Menu, Button, Input, Pagination, Card, Row, Col, message, Modal, Carousel } from 'antd';
 import { HomeOutlined, TagOutlined, InfoCircleOutlined, PhoneOutlined } from '@ant-design/icons';
-import ApiPostService from './../../Service/ApiPostService';
+import ApiPostService from '../../Service/ApiPostService';
 import 'antd/dist/reset.css';
 
 const { Header, Content, Footer } = Layout;
@@ -14,7 +14,7 @@ function TableComponent() {
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
     const categoryId = +useParams().categoryId;
-    
+
     useEffect(() => {
         fetchData();
     }, [page, pageSize, search]);
@@ -128,7 +128,7 @@ const FeaturedItems = ({ items }) => {
                             md={8}
                             lg={4}
                             style={{ textAlign: 'center' }}
-                            onClick={() => showModal(item)} // Open modal on click
+                            onClick={() => showModal(item)}
 
                         >
                             <Card
@@ -137,7 +137,7 @@ const FeaturedItems = ({ items }) => {
                                     <div style={{ position: 'relative', paddingTop: '75%' }}>
                                         <img
                                             alt={item.title}
-                                            src={item.imageUrl}
+                                            src={item.imageUrls[0]}
                                             style={{
                                                 position: 'absolute',
                                                 top: 0,
@@ -212,24 +212,49 @@ const FeaturedItems = ({ items }) => {
             </div>
 
             <Modal
-                title={selectedItem?.title}
-                open={isModalVisible}
+                title={
+                    <div style={{ textAlign: 'center' }}>
+                        {selectedItem?.title}
+                    </div>
+                } open={isModalVisible}
                 onCancel={handleCancel}
                 footer={null}
+                width="60vw"
             >
                 {selectedItem && (
                     <div>
-                        <img
-                            alt={selectedItem.title}
-                            src={selectedItem.imageUrl}
-                            style={{ width: '100%', height: 'auto', marginBottom: '20px' }}
-                        />
+                        <style>
+                            {`
+                              .custom-carousel .slick-prev,
+                              .custom-carousel .slick-next {
+                              color: hotpink !important;
+                               }
+                           `}
+                        </style>
+
+                        <Carousel autoplay dots arrows speed={2000} className="custom-carousel">
+                            {selectedItem.imageUrls.map((url, index) => (
+                                <div key={index}>
+                                    <img
+                                        alt={selectedItem.title}
+                                        src={url}
+                                        style={{
+                                            height: '40vh',
+                                            objectFit: 'cover',
+                                            marginBottom: '20px',
+                                            marginLeft: 'auto',
+                                            marginRight: 'auto',
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </Carousel>
+
                         <p><strong>Mô tả: </strong>{selectedItem.description}</p>
                         <p><strong>Địa chỉ: </strong>{selectedItem.location}</p>
                         <p><strong>Giá: </strong>{selectedItem.price} VNĐ</p>
                         <p><strong>Ngày đăng: </strong>{selectedItem.createdAt}</p>
                         <p><strong>Liên hệ: </strong>{selectedItem.phoneNumber}</p>
-
                     </div>
                 )}
             </Modal>
