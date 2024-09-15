@@ -15,9 +15,7 @@ function TableComponent() {
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState(null);
     const [total, setTotal] = useState(0);
-    const [selectedImages, setSelectedImages] = useState([]);
     const [categorys, setCategorys] = useState([]);
-    const [fetchedImages, setFetchedImages] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
     const { Option } = Select;
     const [form] = Form.useForm();
@@ -155,7 +153,7 @@ function TableComponent() {
     const confirmDelete = (id) => {
         Modal.confirm({
             title: 'Xác nhận',
-            content: 'Bạn có chắc chắn muốn xoá phòng này?',
+            content: 'Bạn có chắc chắn muốn xoá bài đăng này?',
             okText: 'Xác nhận',
             okType: 'danger',
             cancelText: 'Huỷ',
@@ -166,7 +164,7 @@ function TableComponent() {
     const confirmRestore = (id) => {
         Modal.confirm({
             title: 'Xác nhận',
-            content: 'Bạn có chắc chắn muốn khôi phục phòng này?',
+            content: 'Bạn có chắc chắn muốn khôi phục bài đăng này?',
             okText: 'Xác nhận',
             okType: 'primary',
             cancelText: 'Huỷ',
@@ -192,11 +190,10 @@ function TableComponent() {
     };
 
     const openNew = () => {
-        setSelectedImages([]);
-        setFetchedImages([]);
         form.resetFields();
         setModalVisible(true);
         setIsNew(true);
+        setFileList([])
     };
 
 
@@ -375,7 +372,7 @@ function TableComponent() {
                     />
 
                     <Modal
-                        title={isNew ? 'Thêm mới phòng' : 'Chỉnh sửa phòng'}
+                        title={isNew ? 'Thêm mới bài đăng' : 'Chỉnh sửa bài đăng'}
                         open={modalVisible}
                         onCancel={onHide}
                         width="70vw"

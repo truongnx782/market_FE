@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import useAuth from './hooks/useAuth';
-import About from'./components/user/About';
+
+import About from'./components/customer/About';
+import PostList from'./components/customer/PostList';
 
 import LoginAdmin from './components/admin/Login';
 import AdminPost from'./components/admin/Post';
@@ -9,7 +11,6 @@ import AdminCategory from'./components/admin/Category';
 
 import LoginUser from './components/user/Login';
 import UserPost from'./components/user/Post';
-import PostList from'./components/user/PostList';
 
 import Chat from './components/user/Chat'
 
