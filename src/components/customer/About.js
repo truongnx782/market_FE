@@ -102,7 +102,7 @@ const Categories = ({ categories }) => (
         <Row gutter={[16, 16]}>
             {categories.map(item => (
                 <Col xs={24} sm={12} md={8} lg={6} key={item.id} style={{ textAlign: 'center' }}>
-                    <a href={`http://localhost:3000/post-list/${item.id}`}>
+                    <a href={`http://localhost:3000/post-list/category/${item.id}`}>
                         <Card
                             hoverable
                             cover={

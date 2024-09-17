@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Layout, Menu, Button, Input, Pagination, Card, Row, Col, message, Modal, Carousel } from 'antd';
 import { HomeOutlined, TagOutlined, InfoCircleOutlined, PhoneOutlined } from '@ant-design/icons';
 import ApiPostService from '../../Service/ApiPostService';
 import 'antd/dist/reset.css';
+// const { url } = useParams();
 
 const { Header, Content, Footer } = Layout;
 
@@ -13,22 +14,51 @@ function TableComponent() {
     const [pageSize, setPageSize] = useState(10);
     const [total, setTotal] = useState(0);
     const [search, setSearch] = useState('');
-    const categoryId = +useParams().categoryId;
+    const { id } = useParams();
+    const location = useLocation();
+    const url = location.pathname;
+
 
     useEffect(() => {
         fetchData();
     }, [page, pageSize, search]);
 
     const fetchData = async () => {
-        try {
-            const response = await ApiPostService.searchPostList(page - 1, pageSize, search, categoryId);
-            setProducts(response.content);
-            setTotal(response.totalElements);
-
-        } catch (error) {
-            console.log('error:', error);
-            message.error(`Lỗi: ${error.message}`);
+        if (url.includes('/category')) {
+            try {
+                const response = await ApiPostService.searchPostList(page - 1, pageSize, search, id);
+                setProducts(response.content);
+                setTotal(response.totalElements);
+                console.log(id)
+                console.log(url)
+            } catch (error) {
+                console.log('error:', error);
+                message.error(`Lỗi: ${error.message}`);
+            }
         }
+        if (url.includes('/user')) {
+            try {
+                const response = await ApiPostService.searchByIdUser(page - 1, pageSize, search, id);
+                setProducts(response.content);
+                setTotal(response.totalElements);
+            } catch (error) {
+                console.log('error:', error);
+                message.error(`Lỗi: ${error.message}`);
+            }
+        }
+        else {
+            try {
+                const response = await ApiPostService.searchPostList(page - 1, pageSize, search, id);
+                setProducts(response.content);
+                setTotal(response.totalElements);
+                console.log(id)
+                console.log(url)
+            } catch (error) {
+                console.log('error:', error);
+                message.error(`Lỗi: ${error.message}`);
+            }
+        }
+
     };
 
     const navItems = [
@@ -61,48 +91,41 @@ function TableComponent() {
 }
 
 // Header Component
-const HeaderComponent = ({ navItems, search, setSearch }) => (
-    <Header className="shadow-sm" style={{ backgroundColor: '#fff' }}>
-        <div className="header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div className="logo" style={{ color: '#ff6f61', fontWeight: 'bold', fontSize: '24px' }}>Chợ Việt</div>
-            <Menu theme="light" mode="horizontal" style={{ flex: 1, display: 'flex', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    {navItems.map(({ href, icon, text }, index) => (
-                        <Menu.Item key={index} icon={icon} style={{ padding: '0 8px' }}>
-                            <a href={href}>{text}</a>
-                        </Menu.Item>
-                    ))}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <SearchForm search={search} setSearch={setSearch} />
-                    <PostButton />
-                </div>
-            </Menu>
-        </div>
-    </Header>
-);
+const HeaderComponent = ({ navItems, search, setSearch }) => {
+    return (
+        <Header className="shadow-sm" style={{ backgroundColor: '#fff' }}>
+            <div className="header-container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="logo" style={{ color: '#ff6f61', fontWeight: 'bold', fontSize: '24px' }}>Chợ Việt</div>
+                <Menu theme="light" mode="horizontal" style={{ flex: 1, display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {navItems.map(({ href, icon, text }, index) => (
+                            <Menu.Item key={index} icon={icon} style={{ padding: '0 8px' }}>
+                                <a href={href}>{text}</a>
+                            </Menu.Item>
+                        ))}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <Input
+                            placeholder="Tìm kiếm..."
+                            style={{ width: 200, marginLeft: 20 }}
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />                        <a href="http://localhost:3000/login/user" className="text-decoration-none">
+                            <Button type="primary" danger>Đăng Tin</Button>
+                        </a>
+                    </div>
+                </Menu>
+            </div>
+        </Header>
+    );
+};
 
-// SearchForm Component
-const SearchForm = ({ search, setSearch }) => (
-    <div>
-        <Input
-            placeholder="Tìm kiếm..."
-            style={{ width: 200, marginLeft: 20 }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-        />
-    </div>
-);
 
-// PostButton Component
-const PostButton = () => (
-    <a href="http://localhost:3000/login" className="text-decoration-none">
-        <Button type="primary" danger>Đăng Tin</Button>
-    </a>
-);
 
 // FeaturedItems Component
 const FeaturedItems = ({ items }) => {
+    const location = useLocation();
+    const url = location.pathname;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
 
@@ -118,6 +141,12 @@ const FeaturedItems = ({ items }) => {
 
     return (
         <div className="my-4">
+            {url.includes('/user') && items.length > 0 && (
+                <div style={{ textAlign: 'center' }}>
+                    <h4>{items?.[0].fullNameUser}</h4>
+                </div>
+            )}
+
             <div style={{ overflowX: 'auto', whiteSpace: 'nowrap' }}>
                 <Row gutter={[16, 16]} style={{ flexWrap: 'nowrap', margin: 0 }}>
                     {items.map(item => (
@@ -253,8 +282,17 @@ const FeaturedItems = ({ items }) => {
                         <p><strong>Mô tả: </strong>{selectedItem.description}</p>
                         <p><strong>Địa chỉ: </strong>{selectedItem.location}</p>
                         <p><strong>Giá: </strong>{selectedItem.price} VNĐ</p>
+
+                        <p>
+                            <strong>Người đăng: </strong>
+                            <a href={`http://localhost:3000/post-list/user/${selectedItem?.userId}`}>
+                                {selectedItem?.fullNameUser}
+                            </a>
+                        </p>
+
                         <p><strong>Ngày đăng: </strong>{selectedItem.createdAt}</p>
                         <p><strong>Liên hệ: </strong>{selectedItem.phoneNumber}</p>
+
                     </div>
                 )}
             </Modal>

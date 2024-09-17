@@ -22,7 +22,11 @@ function App() {
     <Routes>
       <Route path="/about" element={<About />} />
       <Route path="/post-list" element={<PostList />} />
-      <Route path="/post-list/:categoryId" element={<PostList />} />
+      <Route path="/post-list/category/:id" element={<PostList />} />
+      <Route path="/post-list/user/:id" element={<PostList />} />
+      <Route path="/post-list/follow/:id" element={<PostList />} />
+
+
 
       <Route path="/login/user" element={<LoginUser />} />
       <Route path="/post/user/hien-thi" element={<UserPost/>} />

@@ -2,12 +2,33 @@ import fetchWithAuth from '../hooks/fetchWithAuth';
 import {API_BASE_URL}  from '../constants/Connect'
 
 const ApiPostService={
+
+  async searchByUid(page, size, search, status) {
+    try {
+      const response = await fetchWithAuth(API_BASE_URL+'/market_trade/post/search-by-uid', {
+        method: 'POST',
+        body: JSON.stringify({ page, size, search, status }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        const errorMessage = errorData.message || 'Failed';
+        throw new Error(errorMessage);
+      }
+      return response.json();
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  },
   
-    async searchByUid(page, size, search, status) {
+    async searchByIdUser(page, size, search, id) {
         try {
-          const response = await fetchWithAuth(API_BASE_URL+'/market_trade/post/search-by-uid', {
+          const response = await fetch(API_BASE_URL+'/market_trade/post/search-by-id-user/'+id, {
             method: 'POST',
-            body: JSON.stringify({ page, size, search, status }),
+            body: JSON.stringify({ page, size, search }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
           });
           if (!response.ok) {
             const errorData = await response.json();
